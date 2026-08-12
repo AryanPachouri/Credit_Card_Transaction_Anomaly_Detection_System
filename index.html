@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Anomaly Detection in Credit Card Transactions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;1,400;1,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EFF2F0;
+    --paper-2:#E4E9E5;
+    --ink:#1F2A24;
+    --ink-soft:#4C5A52;
+    --ink-faint:#8B978F;
+    --line:#C7D0C9;
+    --stamp-red:#A23B2E;
+    --stamp-red-bg:#F6E6E2;
+    --stamp-green:#2F6F4E;
+    --stamp-green-bg:#E4EEE6;
+    --accent:#3F5D54;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1040px;margin:0 auto;padding:48px 24px 80px;}
+
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    display:flex;
+    justify-content:space-between;
+    border-bottom:1px solid var(--line);
+    padding-bottom:14px;
+    margin-bottom:28px;
+  }
+  h1{
+    font-family:'Newsreader', serif;
+    font-weight:500;
+    font-style:italic;
+    font-size:clamp(28px,4vw,40px);
+    margin:0 0 8px;
+    line-height:1.15;
+  }
+  .sub{
+    color:var(--ink-soft);
+    font-size:15px;
+    max-width:640px;
+    line-height:1.6;
+    margin:0 0 40px;
+  }
+  .sub code{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--paper-2);padding:1px 5px;border-radius:3px;}
+
+  .grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:0;
+    border:1px solid var(--line);
+    background:var(--paper-2);
+  }
+  @media (max-width:760px){ .grid{grid-template-columns:1fr;} }
+
+  .panel{background:var(--paper);padding:28px 30px;}
+  .panel + .panel{border-left:1px solid var(--line);}
+  @media (max-width:760px){ .panel + .panel{border-left:none;border-top:1px solid var(--line);} }
+
+  .panel-title{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin:0 0 18px;
+  }
+
+  .presets{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+  .presets button{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--ink-soft);
+    padding:7px 12px;
+    border-radius:3px;
+    cursor:pointer;
+  }
+  .presets button:hover{border-color:var(--accent);color:var(--accent);}
+
+  .field-row{
+    display:grid;
+    grid-template-columns:56px 1fr;
+    align-items:center;
+    gap:12px;
+    padding:7px 0;
+    border-bottom:1px solid var(--paper-2);
+  }
+  .field-row label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+  .field-row input{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:14px;
+    width:100%;
+    padding:6px 8px;
+    border:1px solid var(--line);
+    border-radius:3px;
+    background:#fff;
+    color:var(--ink);
+  }
+  .field-row input:focus{outline:2px solid var(--accent);outline-offset:-1px;}
+
+  .compute-btn{
+    width:100%;
+    margin-top:20px;
+    padding:12px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    border-radius:3px;
+    cursor:pointer;
+  }
+  .compute-btn:hover{background:var(--accent);}
+
+  .verdict-zone{min-height:110px;display:flex;align-items:center;justify-content:center;margin-bottom:22px;position:relative;}
+  .stamp{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:500;
+    font-size:20px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    padding:14px 26px;
+    border:3px solid currentColor;
+    border-radius:6px;
+    transform:rotate(-4deg);
+    display:inline-block;
+  }
+  .stamp.fraud{color:var(--stamp-red);background:var(--stamp-red-bg);}
+  .stamp.clear{color:var(--stamp-green);background:var(--stamp-green-bg);}
+  .stamp-placeholder{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    color:var(--ink-faint);
+  }
+
+  .metric-line{
+    display:flex;
+    justify-content:space-between;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    padding:6px 0;
+    border-bottom:1px solid var(--paper-2);
+  }
+  .metric-line span:first-child{color:var(--ink-soft);}
+
+  .bars{margin-top:22px;}
+  .bar-row{margin-bottom:9px;}
+  .bar-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:3px;
+  }
+  .bar-track{height:6px;background:var(--paper-2);border-radius:3px;overflow:hidden;position:relative;}
+  .bar-mid{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line);}
+  .bar-fill{height:100%;background:var(--accent);border-radius:3px;position:absolute;top:0;}
+
+  footer{
+    margin-top:40px;
+    padding-top:20px;
+    border-top:1px solid var(--line);
+    font-size:12.5px;
+    color:var(--ink-faint);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  footer a{color:var(--accent);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">
+    <span>Case file · anomaly detection</span>
+    <span id="case-id">Ref. —</span>
+  </div>
+
+  <h1>Anomaly detection in credit card transactions</h1>
+  <p class="sub">
+    A multivariate Gaussian density model, fitted on the 9 features that best separate
+    authentic from fraudulent transactions in the
+    <a href="https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud" style="color:var(--accent)">ULB credit card fraud dataset</a>.
+    A transaction is flagged when its joint density falls below a threshold tuned for
+    <code>F2-score</code>. All computation below runs client-side, in your browser —
+    nothing is sent to a server.
+  </p>
+
+  <div class="grid">
+    <div class="panel">
+      <p class="panel-title">Enter transaction features</p>
+
+      <div class="presets">
+        <button id="preset-typical" type="button">Load typical transaction</button>
+        <button id="preset-suspicious" type="button">Load suspicious transaction</button>
+      </div>
+
+      <div id="fields"></div>
+
+      <button class="compute-btn" id="compute-btn" type="button">Compute density</button>
+    </div>
+
+    <div class="panel">
+      <p class="panel-title">Density report</p>
+
+      <div class="verdict-zone" id="verdict-zone">
+        <span class="stamp-placeholder">Enter values and compute to see the verdict</span>
+      </div>
+
+      <div class="metric-line"><span>Log-density</span><span id="out-density">—</span></div>
+      <div class="metric-line"><span>Flagging threshold (log ε)</span><span id="out-threshold">—</span></div>
+      <div class="metric-line"><span>Margin</span><span id="out-margin">—</span></div>
+
+      <div class="bars" id="bars"></div>
+    </div>
+  </div>
+
+  <footer>
+    <span>Model: independent-feature multivariate Gaussian · validation F2 0.835 · test F2 0.816 · test recall 0.821</span>
+    <span>Threshold α = 0.009, ε = α⁹</span>
+  </footer>
+
+</div>
+
+<script>
+  const PARAMS = {
+    feature_order: ["V4","V11","V12","V14","V16","V17","V18","V19","Hour"],
+    mu: [-0.00627068718921589,-0.00789865808344494,0.009860714683066579,0.011769539500287881,0.0074085733511681014,0.012342675554738535,0.002813352142586121,-0.0008282610594660706,14.042136362836994],
+    sigma: [1.3990445281297152,1.0038339996695524,0.9468675913905965,0.8982726635755669,0.8444590689585756,0.7511510559495412,0.8243608266084379,0.8123672519796793,5.835325038733761],
+    alpha_opt: 0.009
+  };
+
+  const PRESET_TYPICAL = [-0.006,-0.008,0.010,0.012,0.007,0.012,0.003,-0.001,14];
+  const PRESET_SUSPICIOUS = [5.87,3.305,-3.778,-5.827,-2.695,-3.368,-1.893,1.705,3];
+
+  const n = PARAMS.feature_order.length;
+  const logEpsilon = n * Math.log(PARAMS.alpha_opt);
+
+  const fieldsDiv = document.getElementById('fields');
+  PARAMS.feature_order.forEach((name, i) => {
+    const row = document.createElement('div');
+    row.className = 'field-row';
+    row.innerHTML = `<label for="f-${i}">${name}</label><input id="f-${i}" type="number" step="any" placeholder="0.000">`;
+    fieldsDiv.appendChild(row);
+  });
+
+  function setValues(vals){
+    vals.forEach((v,i) => document.getElementById(`f-${i}`).value = v);
+  }
+
+  document.getElementById('preset-typical').addEventListener('click', () => setValues(PRESET_TYPICAL));
+  document.getElementById('preset-suspicious').addEventListener('click', () => setValues(PRESET_SUSPICIOUS));
+
+  document.getElementById('case-id').textContent = 'Ref. ' + Math.floor(100000 + Math.random()*899999);
+
+  function compute(){
+    const x = [];
+    for (let i=0;i<n;i++){
+      const el = document.getElementById(`f-${i}`);
+      const v = parseFloat(el.value);
+      if (isNaN(v)){ el.focus(); return; }
+      x.push(v);
+    }
+
+    let logDensity = 0;
+    const zScores = [];
+    for (let i=0;i<n;i++){
+      const z = (x[i] - PARAMS.mu[i]) / PARAMS.sigma[i];
+      zScores.push(z);
+      logDensity += -0.5*z*z - Math.log(PARAMS.sigma[i]*Math.sqrt(2*Math.PI));
+    }
+
+    const isFraud = logDensity < logEpsilon;
+    const margin = logDensity - logEpsilon;
+
+    const verdictZone = document.getElementById('verdict-zone');
+    verdictZone.innerHTML = isFraud
+      ? '<span class="stamp fraud">Flagged &middot; possible fraud</span>'
+      : '<span class="stamp clear">Cleared &middot; authentic</span>';
+
+    document.getElementById('out-density').textContent = logDensity.toFixed(3);
+    document.getElementById('out-threshold').textContent = logEpsilon.toFixed(3);
+    document.getElementById('out-margin').textContent = (margin>0?'+':'') + margin.toFixed(3);
+
+    const barsDiv = document.getElementById('bars');
+    barsDiv.innerHTML = '';
+    zScores.forEach((z,i) => {
+      const clamped = Math.max(-6, Math.min(6, z));
+      const pct = (clamped/6)*50;
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+      row.innerHTML = `
+        <div class="bar-label"><span>${PARAMS.feature_order[i]}</span><span>z = ${z.toFixed(2)}</span></div>
+        <div class="bar-track">
+          <div class="bar-mid"></div>
+          <div class="bar-fill" style="left:${pct>=0?50:50+pct}%;width:${Math.abs(pct)}%;"></div>
+        </div>`;
+      barsDiv.appendChild(row);
+    });
+  }
+
+  document.getElementById('compute-btn').addEventListener('click', compute);
+</script>
+</body>
+</html>

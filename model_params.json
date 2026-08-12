@@ -1,0 +1,37 @@
+{
+  "model": "multivariate_gaussian_anomaly_detector",
+  "feature_order": ["V4", "V11", "V12", "V14", "V16", "V17", "V18", "V19", "Hour"],
+  "mu": [
+    -0.00627068718921589,
+    -0.00789865808344494,
+    0.009860714683066579,
+    0.011769539500287881,
+    0.0074085733511681014,
+    0.012342675554738535,
+    0.002813352142586121,
+    -0.0008282610594660706,
+    14.042136362836994
+  ],
+  "sigma": [
+    1.3990445281297152,
+    1.0038339996695524,
+    0.9468675913905965,
+    0.8982726635755669,
+    0.8444590689585756,
+    0.7511510559495412,
+    0.8243608266084379,
+    0.8123672519796793,
+    5.835325038733761
+  ],
+  "alpha_opt": 0.009,
+  "metrics": {
+    "validation_f2": 0.834671,
+    "test_accuracy": 0.996687,
+    "test_precision": 0.798419,
+    "test_recall": 0.821138,
+    "test_f1": 0.809619,
+    "test_f2": 0.816492,
+    "test_mcc": 0.808030
+  },
+  "notes": "mu/sigma fitted on the training split only (authentic transactions), features selected by comparing per-class distributions across the 30 engineered features. epsilon = alpha_opt ** len(feature_order)."
+}

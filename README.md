@@ -5,7 +5,7 @@ transactions by fitting a multivariate Gaussian density over the transaction fea
 space and thresholding on likelihood, rather than training a supervised classifier on
 labeled fraud examples.
 
-**[Live demo →](https://aryanpachouri.github.io/Credit_Card_Transaction_Anomaly_Detection_System/)** &nbsp;·&nbsp; runs entirely in the browser, no backend required
+**[Live demo →](https://credit-card-transaction-anomaly-detection-system-p3e5yuah2.vercel.app/)** &nbsp;·&nbsp; runs entirely in the browser, no backend required
 
 ---
 
